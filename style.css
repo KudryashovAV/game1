@@ -60,13 +60,38 @@ canvas {
 }
 
 /* Контент окна */
-.menu-content {
+.menu-content,
+.popup-content {
   background-color: white;
   padding: 30px;
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   font-family: sans-serif;
+}
+
+/* Стилизация кнопок в меню */
+.popup-content button {
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #3498db;
+  color: white;
+  transition: background 0.2s;
+}
+
+.popup-content button:hover {
+  background-color: #2980b9;
+}
+
+/* Кнопка "Перезапуск игры" может быть красной для акцента */
+#restart-game-btn {
+  background-color: #e74c3c;
+}
+#restart-game-btn:hover {
+  background-color: #c0392b;
 }
 
 .menu-content h2 {
