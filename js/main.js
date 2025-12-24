@@ -97,7 +97,9 @@ async function init() {
 
   // Клик по кнопке "Пауза" в интерфейсе
   pauseBtn.addEventListener("click", (e) => {
-    e.blur(); // Снимаем фокус с кнопки, чтобы Enter не нажимал её повторно
+    if (e.currentTarget && typeof e.currentTarget.blur === "function") {
+      e.currentTarget.blur();
+    }
     togglePauseMenu();
   });
 
