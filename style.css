@@ -2,8 +2,8 @@
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Запрещаем скроллбары браузера */
-  background-color: #1a1a1a; /* Темный фон за пределами игровой зоны */
+  overflow: hidden; /* Запрещаем скроллбары */
+  background-color: #808080; /* Серый цвет за пределами игровой зоны */
 }
 
 /* Контейнер для центрирования игры */
@@ -18,9 +18,10 @@ body {
 
 /* Игровой холст */
 canvas {
-  background-color: azure; /* Цвет пола комнаты по ТЗ */
+  background-color: #808080; /* Фон самого холста тоже серый */
   display: block;
-  image-rendering: pixelated; /* Четкие границы объектов без размытия */
+  image-rendering: pixelated; /* Четкость для пикселей */
+  image-rendering: crisp-edges;
 }
 
 /* Скрытые элементы интерфейса */
@@ -35,7 +36,7 @@ canvas {
   left: 20px;
   color: #000;
   font-family: sans-serif;
-  pointer-events: none; /* Пропускает клики сквозь себя */
+  pointer-events: none; /* Пропускает клики */
   z-index: 10;
 }
 
