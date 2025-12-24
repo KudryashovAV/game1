@@ -15,10 +15,12 @@ export class Player {
 
   // Загрузка оружия из JSON
   async equipWeapon(weaponId) {
+    var config = null;
+
     try {
       const response = await fetch("../assets/weapons.json");
       const data = await response.json();
-      const config = data[weaponId];
+      config = data[weaponId];
 
       if (config) {
         this.weapon = new BallLightning(config);
