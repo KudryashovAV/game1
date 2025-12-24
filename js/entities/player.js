@@ -56,7 +56,7 @@ export class Player {
       this.weapon.draw(ctx);
     }
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "black";
     ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
   }
 }

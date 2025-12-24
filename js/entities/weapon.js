@@ -27,7 +27,7 @@ export class BallLightning {
   draw(ctx) {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
-    ctx.fillStyle = "yellow"; // Цвет молнии
+    ctx.fillStyle = "black"; // Цвет молнии
     ctx.shadowBlur = 10; // Эффект свечения
     ctx.shadowColor = "yellow";
     ctx.fill();
