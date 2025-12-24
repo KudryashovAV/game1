@@ -7,28 +7,21 @@ export class Player {
     this.y = 0;
     this.speed = 7;
     this.keys = {};
-    this.weapon = null; // Текущее оружие
+    this.weapon = null;
 
+    // Слушатели клавиш
     window.addEventListener("keydown", (e) => (this.keys[e.code] = true));
     window.addEventListener("keyup", (e) => (this.keys[e.code] = false));
   }
 
-  // Загрузка оружия из JSON
   async equipWeapon(weaponId) {
-    var config = null;
-
+    let config;
     try {
-      const response = await fetch("../assets/weapons.json");
+      const response = await fetch("./assets/weapons.json");
       const data = await response.json();
       config = data[weaponId];
-
-      if (config) {
-        this.weapon = new BallLightning(config);
-        document.getElementById("weapon-display").innerText = `Моё оружие: ${this.weapon.name}`;
-      }
     } catch (error) {
-      console.warn("JSON не найден, использую стандартные настройки оружия.");
-      // Запасной вариант, если JSON не загрузился
+      console.warn("Используются локальные настройки оружия");
       config = {
         name: "Шаровая молния",
         damage: 1,
@@ -51,27 +44,45 @@ export class Player {
   }
 
   update(bounds) {
-    if (this.keys["KeyW"] || this.keys["ArrowUp"]) this.y -= this.speed;
-    if (this.keys["KeyS"] || this.keys["ArrowDown"]) this.y += this.speed;
-    if (this.keys["KeyA"] || this.keys["ArrowLeft"]) this.x -= this.speed;
-    if (this.keys["KeyD"] || this.keys["ArrowRight"]) this.x += this.speed;
+    // --- 1. ДВИЖЕНИЕ ИГРОКА ---
+    // Проверяем каждую ось независимо
+    if (this.keys["KeyW"] || this.keys["ArrowUp"]) {
+      this.y -= this.speed;
+    }
+    if (this.keys["KeyS"] || this.keys["ArrowDown"]) {
+      this.y += this.speed;
+    }
+    if (this.keys["KeyA"] || this.keys["ArrowLeft"]) {
+      this.x -= this.speed;
+    }
+    if (this.keys["KeyD"] || this.keys["ArrowRight"]) {
+      this.x += this.speed;
+    }
 
+    // --- 2. ОГРАНИЧЕНИЕ ГРАНИЦАМИ (COLLISION) ---
     const half = this.size / 2;
-    this.x = Math.max(half, Math.min(this.x, bounds.width - half));
-    this.y = Math.max(half, Math.min(this.y, bounds.height - half));
+    // Ограничение по X
+    if (this.x < half) this.x = half;
+    if (this.x > bounds.width - half) this.x = bounds.width - half;
 
-    // Обновляем позицию оружия, если оно есть
+    // Ограничение по Y
+    if (this.y < half) this.y = half;
+    if (this.y > bounds.height - half) this.y = bounds.height - half;
+
+    // --- 3. ОБНОВЛЕНИЕ ОРУЖИЯ ---
+    // Оружие просто "подсматривает" текущие координаты игрока
     if (this.weapon) {
       this.weapon.update(this.x, this.y);
     }
   }
 
   draw(ctx) {
-    // Сначала рисуем оружие (оно может быть под или над игроком)
+    // Отрисовка оружия (под игроком или над ним — на твой вкус)
     if (this.weapon) {
       this.weapon.draw(ctx);
     }
 
+    // Отрисовка игрока
     ctx.fillStyle = "black";
     ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
   }
