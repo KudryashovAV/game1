@@ -1,74 +1,48 @@
-// js/GameEngine.js
-// В начале файла импортируем оптимизатор
-// import { OptimizedRenderer } from './OptimizedRenderer.js'; // Если используем ES6 modules
+// Импортируем другие модули (мы их создадим ниже)
+import { Game } from "./game.js";
+import { Player } from "./entities/player.js";
 
-class GameEngine {
-  constructor(canvas) {
-    this.canvas = canvas;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-    // ⭐ СОЗДАЁМ ОПТИМИЗИРОВАННЫЙ РЕНДЕРЕР
-    this.renderer = new OptimizedRenderer(canvas, canvas.width, canvas.height);
+// Настройка размера канваса под размер окна
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-    this.gameState = {
-      player: null,
-      enemies: [],
-      projectiles: [],
-      particles: [],
-      experienceOrbs: [],
-      ui: {},
-    };
+// Создаем объекты
+const game = new Game(canvas, ctx);
+const player = new Player();
 
-    this.lastTime = 0;
-    this.deltaTime = 0;
-    this.isRunning = false;
-
-    // Инициализация других систем
-    this.enemyManager = new EnemyManager();
-    this.collisionSystem = new CollisionSystem();
-    this.uiManager = new UIManager();
-  }
-
-  update(deltaTime) {
-    // Обновляем все системы
-    this.updatePlayer(deltaTime);
-    this.enemyManager.update(deltaTime, this.gameState.player);
-    this.updateProjectiles(deltaTime);
-    this.updateParticles(deltaTime);
-
-    // Проверяем коллизии
-    this.collisionSystem.checkAll(this.gameState.player, this.gameState.enemies, this.gameState.projectiles);
-
-    // Обновляем UI
-    this.gameState.ui = this.uiManager.getUIState();
-  }
-
-  render() {
-    // ⭐ ИСПОЛЬЗУЕМ ОПТИМИЗИРОВАННЫЙ РЕНДЕРЕР
-    this.renderer.render(this.gameState);
-  }
-
-  gameLoop(currentTime) {
-    if (!this.isRunning) return;
-
-    this.deltaTime = (currentTime - this.lastTime) / 1000; // в секундах
-    this.lastTime = currentTime;
-
-    // Фиксированный временной шаг для стабильности физики
-    const fixedDelta = 1 / 60; // 60 FPS
-
-    this.update(fixedDelta);
-    this.render();
-
-    requestAnimationFrame(this.gameLoop.bind(this));
-  }
-
-  start() {
-    this.isRunning = true;
-    this.lastTime = performance.now();
-    this.gameLoop(this.lastTime);
-  }
-
-  stop() {
-    this.isRunning = false;
-  }
+// Инициализация игры
+function init() {
+  game.setupRoom(); // Генерируем комнату и двери
+  player.spawn(game.entrancePosition); // Спавним игрока у входной двери
+  requestAnimationFrame(gameLoop); // Запускаем цикл
 }
+
+// Главный игровой цикл
+function gameLoop() {
+  // 1. Очистка (рисуем фон/пол)
+  ctx.fillStyle = "azure";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 2. Обновление логики
+  player.update(game.roomBounds);
+
+  // 3. Отрисовка
+  // Используем камеру, чтобы игрок всегда был в центре,
+  // а комната двигалась вокруг него
+  ctx.save();
+  const cameraX = -player.x + canvas.width / 2;
+  const cameraY = -player.y + canvas.height / 2;
+  ctx.translate(cameraX, cameraY);
+
+  game.drawRoom(); // Рисуем стены, двери и символы
+  player.draw(ctx); // Рисуем игрока
+
+  ctx.restore();
+
+  requestAnimationFrame(gameLoop);
+}
+
+init();

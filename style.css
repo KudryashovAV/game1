@@ -1,194 +1,56 @@
-* {
+/* Основные настройки страницы */
+body {
+  /* Убираем внешние и внутренние отступы у страницы */
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: "Press Start 2P", cursive;
-  background: #000;
-  color: #fff;
+  /* Запрещаем прокрутку, чтобы экран не дергался при движении игрока */
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  /* Темный фон вокруг игрового поля на случай, если окно больше канваса */
+  background-color: #333;
 }
 
-#gameContainer {
+/* Контейнер, в котором лежит игра и интерфейс */
+#game-container {
   position: relative;
   width: 100vw;
   height: 100vh;
-}
-
-#gameCanvas {
-  display: block;
-  background: #111;
-  width: 100%;
-  height: 100%;
-}
-
-/* Экраны */
-.screen {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 30, 0.95);
-  padding: 30px;
-  border-radius: 10px;
-  border: 3px solid #4a00e0;
-  text-align: center;
-  min-width: 500px;
-  display: none;
-  z-index: 100;
-}
-
-.screen h2 {
-  color: #8a2be2;
-  margin-bottom: 20px;
-  font-size: 24px;
-}
-
-.screen p {
-  margin-bottom: 20px;
-  color: #fff;
-}
-
-/* Выборы */
-.choices {
+  /* Центрируем содержимое внутри контейнера */
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin: 20px 0;
+  justify-content: center;
+  align-items: center;
 }
 
-.choice {
-  background: linear-gradient(145deg, #1a1a2e, #16213e);
-  padding: 20px;
-  border-radius: 8px;
-  border: 2px solid #393e46;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-align: left;
+/* Игровой холст (Canvas) */
+canvas {
+  /* Лазурный пол комнаты по ТЗ */
+  background-color: azure;
+  display: block;
+  /* Отключаем сглаживание, чтобы пиксели (игрок) были четкими */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
-.choice:hover {
-  background: linear-gradient(145deg, #0f3460, #4a00e0);
-  border-color: #8a2be2;
-  transform: scale(1.02);
+/* Общий класс для скрытия элементов интерфейса */
+.hidden {
+  display: none !important;
 }
 
-.choice h3 {
-  color: #00adb5;
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.choice p {
-  color: #eeeeee;
-  font-size: 12px;
-  margin: 0;
-}
-
-/* HUD */
-#hud {
+/* Слой интерфейса (здоровье, уровень), висит поверх игры */
+#ui-layer {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px;
-  border-radius: 10px;
-  border: 2px solid #393e46;
-  display: flex;
-  gap: 25px;
-  z-index: 50;
+  color: #000;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* Чтобы клики мышкой проходили сквозь текст и не мешали игре */
+  pointer-events: none;
+  /* Тень для лучшей читаемости на светлом фоне */
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
 }
 
-.hud-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.hud-item span:first-child {
-  font-size: 24px;
-}
-
-.hud-item span:last-child {
-  font-size: 20px;
-  color: #fff;
-}
-
-/* Панель способностей */
-#abilitiesPanel {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px;
-  border-radius: 10px;
-  border: 2px solid #393e46;
-  max-width: 300px;
-  z-index: 50;
-}
-
-#abilitiesPanel h3 {
-  color: #00adb5;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-#abilitiesList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ability-item {
-  background: rgba(26, 26, 46, 0.8);
-  padding: 8px 12px;
-  border-radius: 5px;
-  border-left: 4px solid #8a2be2;
-  font-size: 11px;
-  color: #eeeeee;
-}
-
-/* Кнопка перезапуска */
-button {
-  background: linear-gradient(145deg, #8a2be2, #4a00e0);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 8px;
-  font-family: "Press Start 2P", cursive;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: all 0.3s;
-}
-
-button:hover {
-  background: linear-gradient(145deg, #4a00e0, #8a2be2);
-  transform: scale(1.05);
-}
-
-/* Таймер комнаты */
-#timerText {
-  color: #ff4444;
-  font-size: 14px;
-  margin-top: 20px;
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+/* Стили для текста характеристик */
+.stats div {
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 18px;
 }

@@ -101,9 +101,10 @@ class Player {
     this.invincible = false;
     this.invincibleTimer = 0;
     this.collectRange = 100;
-  }
+  }  
 
   update(deltaTime, enemies) {
+    console.log("enemies", enemies)
     // Движение
     this.handleMovement(deltaTime);
 
