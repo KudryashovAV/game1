@@ -16,7 +16,7 @@ export class Player {
   // Загрузка оружия из JSON
   async equipWeapon(weaponId) {
     try {
-      const response = await fetch("./assets/weapons.json");
+      const response = await fetch("./assets/weapon.json");
       const data = await response.json();
       const config = data[weaponId];
 
@@ -25,7 +25,21 @@ export class Player {
         document.getElementById("weapon-display").innerText = `Моё оружие: ${this.weapon.name}`;
       }
     } catch (error) {
-      console.error("Ошибка загрузки оружия:", error);
+      console.warn("JSON не найден, использую стандартные настройки оружия.");
+      // Запасной вариант, если JSON не загрузился
+      config = {
+        name: "Шаровая молния",
+        damage: 1,
+        attackSpeed: 0.05,
+        radius: 150,
+        hitbox: 15,
+      };
+    }
+
+    if (config) {
+      this.weapon = new BallLightning(config);
+      const display = document.getElementById("weapon-display");
+      if (display) display.innerText = `Моё оружие: ${this.weapon.name}`;
     }
   }
 
