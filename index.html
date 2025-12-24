@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Survivor JS — Рогалик в браузере</title>
+    <title>Survivor JS</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -13,23 +13,13 @@
           <div id="hp-display">HP: 5 / 5</div>
           <div id="level-display">Уровень: 1</div>
           <div id="room-display">Комната: 1/5</div>
-          <div id="mobs-display">Монстры: 0</div>
-        </div>
-
-        <div id="timer-display" class="hidden">Покиньте комнату! <span>5</span></div>
-      </div>
-
-      <div id="skill-menu" class="overlay hidden">
-        <div class="menu-content">
-          <h2>Выберите навык</h2>
-          <div id="skill-choices"></div>
         </div>
       </div>
 
-      <div id="game-over" class="overlay hidden">
+      <div id="transition-popup" class="overlay hidden">
         <div class="menu-content">
-          <h2 id="result-title">Игра окончена</h2>
-          <button onclick="location.reload()">Начать заново</button>
+          <h2 id="transition-text">Уровень пройден</h2>
+          <button id="continue-btn">Продолжить</button>
         </div>
       </div>
 

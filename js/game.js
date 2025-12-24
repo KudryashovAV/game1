@@ -1,63 +1,91 @@
-/**
- * Класс управления миром игры и комнатами.
- */
 export class Game {
   constructor(canvas, ctx) {
     this.canvas = canvas;
     this.ctx = ctx;
-    // Размер комнаты значительно больше экрана
     this.roomBounds = { width: 2400, height: 1800 };
     this.doors = [];
     this.entrancePosition = { x: 0, y: 0 };
     this.allSymbols = ["@", "#", "$", "%"];
+    this.currentRoom = 1;
   }
 
   setupRoom() {
     this.doors = [];
     let usedSymbols = [...this.allSymbols].sort(() => Math.random() - 0.5);
 
-    // 1. ВХОД (Правая стена, центр)
+    // Вход (справа)
     const entrance = {
       side: "right",
       x: this.roomBounds.width,
       y: this.roomBounds.height / 2,
-      symbol: "", // У входа нет символа
+      symbol: "",
       hasSymbol: false,
+      // Координаты центра круга для проверки коллизий
+      circleX: this.roomBounds.width - 60,
+      circleY: this.roomBounds.height / 2,
     };
     this.doors.push(entrance);
+    this.entrancePosition = { x: entrance.circleX, y: entrance.circleY };
 
-    // Позиция игрока: центр круга перед дверью (внутри комнаты)
-    this.entrancePosition = { x: entrance.x - 60, y: entrance.y };
-
-    // 2. ВЫХОД (Левая стена, макс. удаление)
-    // Располагаем по центру левой стены для максимальной дистанции
+    // Выход (слева)
     this.doors.push({
       side: "left",
       x: 0,
       y: this.roomBounds.height / 2,
-      symbol: usedSymbols.pop(),
+      symbol: usedSymbols[0],
       hasSymbol: true,
+      circleX: 60,
+      circleY: this.roomBounds.height / 2,
     });
+  }
 
-    // Можно добавить еще двери на верх/низ по желанию в будущем
+  nextLevel() {
+    this.currentRoom++;
+    this.setupRoom();
+    document.getElementById("room-display").innerText = `Комната: ${this.currentRoom}/5`;
+  }
+
+  // Проверка: коснулся ли игрок двери или центра круга
+  checkDoorCollision(player) {
+    for (let door of this.doors) {
+      // Проверяем только двери, которые являются выходами (с символами)
+      if (!door.hasSymbol) continue;
+
+      // 1. Проверка касания центра круга (дистанция между точками)
+      const dist = Math.sqrt((player.x - door.circleX) ** 2 + (player.y - door.circleY) ** 2);
+      if (dist < 15) return door; // Если игрок почти в центре круга
+
+      // 2. Проверка касания прямоугольника двери
+      const doorW = 20;
+      const doorH = 60;
+      const doorRect = {
+        x: door.side === "left" ? 0 : door.x - doorW,
+        y: door.y - doorH / 2,
+        w: doorW,
+        h: doorH,
+      };
+
+      if (
+        player.x + player.size / 2 > doorRect.x &&
+        player.x - player.size / 2 < doorRect.x + doorRect.w &&
+        player.y + player.size / 2 > doorRect.y &&
+        player.y - player.size / 2 < doorRect.y + doorRect.h
+      ) {
+        return door;
+      }
+    }
+    return null;
   }
 
   drawRoom() {
     const ctx = this.ctx;
-
-    // Рисуем пол комнаты (лазурный)
     ctx.fillStyle = "azure";
     ctx.fillRect(0, 0, this.roomBounds.width, this.roomBounds.height);
-
-    // Рисуем стены (черная рамка)
     ctx.strokeStyle = "#000";
     ctx.lineWidth = 15;
     ctx.strokeRect(0, 0, this.roomBounds.width, this.roomBounds.height);
 
-    // Отрисовка дверей
-    this.doors.forEach((door) => {
-      this.drawDoor(door);
-    });
+    this.doors.forEach((door) => this.drawDoor(door));
   }
 
   drawDoor(door) {
@@ -65,33 +93,22 @@ export class Game {
     const doorW = 20;
     const doorH = 60;
 
-    // 1. Зеленый прямоугольник (сама дверь)
     ctx.fillStyle = "green";
-    let drawX = door.x;
-    let drawY = door.y - doorH / 2;
+    let drawX = door.side === "right" ? door.x - doorW : door.x;
+    ctx.fillRect(drawX, door.y - doorH / 2, doorW, doorH);
 
-    // Корректировка отрисовки, чтобы дверь была "встроена" в стену
-    if (door.side === "right") drawX -= doorW;
-
-    ctx.fillRect(drawX, drawY, doorW, doorH);
-
-    // 2. Круг перед дверью (диаметр в 2 раза больше игрока 20*2 = 40, значит радиус 20)
     ctx.beginPath();
-    let circleX = door.side === "right" ? door.x - 60 : door.side === "left" ? door.x + 60 : door.x;
-    let circleY = door.y;
-
-    ctx.arc(circleX, circleY, 20, 0, Math.PI * 2);
+    ctx.arc(door.circleX, door.circleY, 20, 0, Math.PI * 2);
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // 3. Символ внутри круга
     if (door.hasSymbol) {
       ctx.fillStyle = "black";
       ctx.font = "bold 24px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(door.symbol, circleX, circleY);
+      ctx.fillText(door.symbol, door.circleX, door.circleY);
     }
   }
 }
