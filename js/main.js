@@ -14,12 +14,8 @@ const game = new Game(canvas, ctx);
 const player = new Player();
 let isPaused = false;
 
-/**
- * Логика продолжения игры (вынесена в отдельную функцию,
- * чтобы вызывать и по клику, и по нажатию Enter)
- */
 function handleContinue() {
-  if (!isPaused) return; // Если игра не на паузе, ничего не делаем
+  if (!isPaused) return;
 
   if (game.currentRoom >= 5) {
     location.reload();
@@ -28,27 +24,35 @@ function handleContinue() {
 
   isPaused = false;
   transitionPopup.classList.add("hidden");
-  game.nextLevel();
-  player.spawn(game.entrancePosition);
+
+  // Порядок важен: сначала генерируем новую комнату
+  game.nextLevel().then(() => {
+    // Затем перемещаем игрока в точку входа новой комнаты
+    player.spawn(game.entrancePosition);
+  });
 }
 
 async function init() {
-  game.setupRoom();
+  // 1. Сначала генерируем комнату и её границы
+  await game.setupRoom();
+
+  // 2. Только когда комната готова, ставим игрока в нужные координаты
   player.spawn(game.entrancePosition);
 
-  // 1. Обработка клика мышкой
-  continueBtn.addEventListener("click", handleContinue);
+  // 3. Загружаем оружие
+  try {
+    await player.equipWeapon("1");
+  } catch (e) {
+    console.warn("Оружие не загружено, играем без него");
+  }
 
-  // 2. Обработка клавиши Enter
+  // 4. Настраиваем события
+  continueBtn.addEventListener("click", handleContinue);
   window.addEventListener("keydown", (e) => {
-    if (e.code === "Enter" || e.code === "NumpadEnter") {
-      handleContinue();
-    }
+    if (e.code === "Enter" || e.code === "NumpadEnter") handleContinue();
   });
 
-  // Экипируем первое оружие
-  await player.equipWeapon("1");
-
+  // 5. И только теперь запускаем цикл
   requestAnimationFrame(gameLoop);
 }
 
@@ -56,27 +60,29 @@ function gameLoop() {
   if (!isPaused) {
     player.update(game.roomBounds);
 
-    game.enemies.forEach((enemy, index) => {
+    // Логика врагов
+    game.enemies.forEach((enemy) => {
       enemy.update(player.x, player.y);
 
-      // 1. Проверка: Оружие бьет врага
+      // Оружие -> Враг
       if (player.weapon) {
-        const distToWeapon = Math.sqrt((enemy.x - player.weapon.x) ** 2 + (enemy.y - player.weapon.y) ** 2);
-        // Используем радиус поражения (hitbox) из JSON оружия
-        if (distToWeapon < enemy.size / 2 + player.weapon.hitbox) {
-          enemy.takeDamage(0.1); // Наносим небольшой урон каждый кадр касания
+        const dx = enemy.x - player.weapon.x;
+        const dy = enemy.y - player.weapon.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < enemy.size / 2 + player.weapon.hitbox) {
+          enemy.takeDamage(0.05);
         }
       }
 
-      // 2. Проверка: Враг касается игрока
-      const distToPlayer = Math.sqrt((enemy.x - player.x) ** 2 + (enemy.y - player.y) ** 2);
-      if (distToPlayer < enemy.size / 2 + player.size / 2) {
-        enemy.isDead = true; // Враг погибает при касании по ТЗ
-        // Здесь потом добавим вычитание HP у игрока
+      // Враг -> Игрок
+      const dxP = enemy.x - player.x;
+      const dyP = enemy.y - player.y;
+      const distP = Math.sqrt(dxP * dxP + dyP * dyP);
+      if (distP < enemy.size / 2 + player.size / 2) {
+        enemy.isDead = true;
       }
     });
 
-    // Удаляем мертвых врагов
     game.enemies = game.enemies.filter((e) => !e.isDead);
 
     const hitDoor = game.checkDoorCollision(player);
@@ -85,7 +91,7 @@ function gameLoop() {
     }
   }
 
-  // Отрисовка
+  // Рендеринг
   ctx.fillStyle = "#808080";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -108,7 +114,6 @@ function gameLoop() {
 
 function showTransition(door) {
   isPaused = true;
-
   if (game.currentRoom === 5) {
     transitionText.innerText = "Ура! Игра пройдена";
     continueBtn.innerText = "Начать заново";
@@ -116,7 +121,6 @@ function showTransition(door) {
     transitionText.innerText = `Уровень пройден, следующая комната содержит ${door.symbol}`;
     continueBtn.innerText = "Продолжить";
   }
-
   transitionPopup.classList.remove("hidden");
 }
 

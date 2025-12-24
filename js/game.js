@@ -120,10 +120,10 @@ export class Game {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  nextLevel() {
+  async nextLevel() {
     if (this.currentRoom < 5) {
       this.currentRoom++;
-      this.setupRoom();
+      await this.setupRoom();
       document.getElementById("room-display").innerText = `Комната: ${this.currentRoom}/5`;
     }
   }
