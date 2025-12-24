@@ -11,12 +11,43 @@ export class Game {
     this.entrancePosition = { x: 0, y: 0 };
     this.allSymbols = ["@", "#", "$", "%"];
     this.currentRoom = 1;
+    this.enemies = [];
+    this.enemyConfig = null;
   }
 
-  setupRoom() {
+  async loadEnemyConfig() {
+    if (this.enemyConfig) return;
+    try {
+      const response = await fetch("./assets/enemies.json");
+      this.enemyConfig = await response.json();
+    } catch (e) {
+      this.enemyConfig = { star: { name: "Звезда", speed: 2, hp: 3, color: "#FFD700", blinkColor: "#FFF", size: 25 } };
+    }
+  }
+
+  spawnEnemies() {
+    // Расчет количества: 1 комната = 5, 5 комната = 100
+    const count = 5 + Math.floor((this.currentRoom - 1) * 23.75);
+
+    for (let i = 0; i < count; i++) {
+      // Спавним врагов на случайном расстоянии от центра, чтобы они не были кучей
+      const x = Math.random() * (this.roomBounds.width - 200) + 100;
+      const y = Math.random() * (this.roomBounds.height - 200) + 100;
+
+      // Убедимся, что враг не спавнится прямо на игроке (грубая проверка)
+      if (Math.abs(x - this.entrancePosition.x) < 300) continue;
+
+      this.enemies.push(new Enemy(this.enemyConfig.star, x, y));
+    }
+  }
+
+  async setupRoom() {
     this.doors = [];
     let usedSymbols = [...this.allSymbols].sort(() => Math.random() - 0.5);
     const isFinalRoom = this.currentRoom === 5;
+    this.enemies = [];
+    await this.loadEnemyConfig();
+    this.spawnEnemies();
 
     // 1. ВХОД (Всегда справа, центр)
     const entrance = {

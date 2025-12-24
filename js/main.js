@@ -56,6 +56,29 @@ function gameLoop() {
   if (!isPaused) {
     player.update(game.roomBounds);
 
+    game.enemies.forEach((enemy, index) => {
+      enemy.update(player.x, player.y);
+
+      // 1. Проверка: Оружие бьет врага
+      if (player.weapon) {
+        const distToWeapon = Math.sqrt((enemy.x - player.weapon.x) ** 2 + (enemy.y - player.weapon.y) ** 2);
+        // Используем радиус поражения (hitbox) из JSON оружия
+        if (distToWeapon < enemy.size / 2 + player.weapon.hitbox) {
+          enemy.takeDamage(0.1); // Наносим небольшой урон каждый кадр касания
+        }
+      }
+
+      // 2. Проверка: Враг касается игрока
+      const distToPlayer = Math.sqrt((enemy.x - player.x) ** 2 + (enemy.y - player.y) ** 2);
+      if (distToPlayer < enemy.size / 2 + player.size / 2) {
+        enemy.isDead = true; // Враг погибает при касании по ТЗ
+        // Здесь потом добавим вычитание HP у игрока
+      }
+    });
+
+    // Удаляем мертвых врагов
+    game.enemies = game.enemies.filter((e) => !e.isDead);
+
     const hitDoor = game.checkDoorCollision(player);
     if (hitDoor) {
       showTransition(hitDoor);
@@ -76,6 +99,7 @@ function gameLoop() {
   ctx.save();
   ctx.translate(camX, camY);
   game.drawRoom();
+  game.enemies.forEach((enemy) => enemy.draw(ctx));
   player.draw(ctx);
   ctx.restore();
 

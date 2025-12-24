@@ -1,0 +1,10 @@
+{
+  "star": {
+    "name": "Звезда",
+    "speed": 2,
+    "hp": 3,
+    "color": "#FFD700",
+    "blinkColor": "#FFFFFF",
+    "size": 25
+  }
+}
