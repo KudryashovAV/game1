@@ -39,9 +39,5 @@ export class Player {
     ctx.fillStyle = "black";
     // Рисуем квадрат, где (x, y) — это его центр
     ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
-
-    // Маленькая обводка, чтобы игрок не сливался с лазурным, если будет светлое оформление
-    ctx.strokeStyle = "rgba(0,0,0,0.2)";
-    ctx.strokeRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
   }
 }

@@ -70,7 +70,7 @@ function showTransition(door) {
     transitionText.innerText = "Ура! Игра пройдена";
     continueBtn.innerText = "Начать заново";
   } else {
-    transitionText.innerText = `Уровень пройден, следующая комната содержит ${door.symbol}`;
+    transitionText.innerText = `${game.currentRoom} уровень пройден, следующая комната содержит ${door.symbol}`;
     continueBtn.innerText = "Продолжить";
   }
 
