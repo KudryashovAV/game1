@@ -94,12 +94,24 @@ function showTransition(door) {
 }
 
 async function init() {
+  console.log("Инициализация игры...");
   game.setupRoom();
   player.spawn(game.entrancePosition);
 
-  // Экипируем первое оружие
-  await player.equipWeapon("1");
+  try {
+    console.log("Загрузка оружия...");
+    await player.equipWeapon("1");
+  } catch (e) {
+    console.warn("Не удалось загрузить оружие, но игра продолжается:", e);
+    document.getElementById("weapon-display").innerText = "Оружие: Не найдено";
+  }
 
-  // ... остальной код слушателей ...
+  // Слушатели событий
+  continueBtn.addEventListener("click", handleContinue);
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Enter" || e.code === "NumpadEnter") handleContinue();
+  });
+
+  console.log("Запуск игрового цикла.");
   requestAnimationFrame(gameLoop);
 }
