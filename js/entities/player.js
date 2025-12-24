@@ -1,17 +1,32 @@
-/**
- * Класс игрока.
- */
+import { BallLightning } from "./weapon.js";
+
 export class Player {
   constructor() {
-    this.size = 20; // Примерно 5мм на типичном мониторе
+    this.size = 20;
     this.x = 0;
     this.y = 0;
     this.speed = 7;
     this.keys = {};
+    this.weapon = null; // Текущее оружие
 
-    // Отслеживание нажатых клавиш
     window.addEventListener("keydown", (e) => (this.keys[e.code] = true));
     window.addEventListener("keyup", (e) => (this.keys[e.code] = false));
+  }
+
+  // Загрузка оружия из JSON
+  async equipWeapon(weaponId) {
+    try {
+      const response = await fetch("./assets/weapons.json");
+      const data = await response.json();
+      const config = data[weaponId];
+
+      if (config) {
+        this.weapon = new BallLightning(config);
+        document.getElementById("weapon-display").innerText = `Моё оружие: ${this.weapon.name}`;
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки оружия:", error);
+    }
   }
 
   spawn(pos) {
@@ -20,24 +35,28 @@ export class Player {
   }
 
   update(bounds) {
-    // Движение по WASD или Стрелкам
     if (this.keys["KeyW"] || this.keys["ArrowUp"]) this.y -= this.speed;
     if (this.keys["KeyS"] || this.keys["ArrowDown"]) this.y += this.speed;
     if (this.keys["KeyA"] || this.keys["ArrowLeft"]) this.x -= this.speed;
     if (this.keys["KeyD"] || this.keys["ArrowRight"]) this.x += this.speed;
 
-    // Ограничение передвижения: не даем выйти за стены комнаты
-    // Учитываем размер игрока (от центра)
     const half = this.size / 2;
-    if (this.x < half) this.x = half;
-    if (this.x > bounds.width - half) this.x = bounds.width - half;
-    if (this.y < half) this.y = half;
-    if (this.y > bounds.height - half) this.y = bounds.height - half;
+    this.x = Math.max(half, Math.min(this.x, bounds.width - half));
+    this.y = Math.max(half, Math.min(this.y, bounds.height - half));
+
+    // Обновляем позицию оружия, если оно есть
+    if (this.weapon) {
+      this.weapon.update(this.x, this.y);
+    }
   }
 
   draw(ctx) {
-    ctx.fillStyle = "black";
-    // Рисуем квадрат, где (x, y) — это его центр
+    // Сначала рисуем оружие (оно может быть под или над игроком)
+    if (this.weapon) {
+      this.weapon.draw(ctx);
+    }
+
+    ctx.fillStyle = "white";
     ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
   }
 }

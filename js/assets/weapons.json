@@ -1,0 +1,9 @@
+{
+  "1": {
+    "name": "Шаровая молния",
+    "damage": 1,
+    "attackSpeed": 0.05,
+    "radius": 150,
+    "hitbox": 15
+  }
+}

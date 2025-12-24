@@ -93,4 +93,13 @@ function showTransition(door) {
   transitionPopup.classList.remove("hidden");
 }
 
-init();
+async function init() {
+  game.setupRoom();
+  player.spawn(game.entrancePosition);
+
+  // Экипируем первое оружие
+  await player.equipWeapon("1");
+
+  // ... остальной код слушателей ...
+  requestAnimationFrame(gameLoop);
+}

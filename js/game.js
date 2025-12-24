@@ -44,7 +44,7 @@ export class Game {
 
     selectedSides.forEach((side, index) => {
       let doorX, doorY, circleX, circleY;
-      const padding = 200; // Отступ от углов, чтобы двери не слипались
+      const padding = 20; // Отступ от углов, чтобы двери не слипались
 
       console.log("side", side);
       console.log("numExits", numExits);
@@ -52,10 +52,7 @@ export class Game {
       if (side === "left") {
         doorX = 0;
         // Если выход один, ставим строго по центру для макс. удаления
-        doorY =
-          numExits === 1
-            ? this.roomBounds.height / 2
-            : this.getRandomInRange(padding, this.roomBounds.height - padding);
+        doorY = this.getRandomInRange(padding, this.roomBounds.height - padding);
         circleX = 60;
         circleY = doorY;
       } else if (side === "top") {
