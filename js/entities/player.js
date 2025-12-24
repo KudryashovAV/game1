@@ -16,7 +16,7 @@ export class Player {
   // Загрузка оружия из JSON
   async equipWeapon(weaponId) {
     try {
-      const response = await fetch("./assets/weapon.json");
+      const response = await fetch("../assets/weapons.json");
       const data = await response.json();
       const config = data[weaponId];
 
