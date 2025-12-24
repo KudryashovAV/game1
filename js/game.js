@@ -124,7 +124,10 @@ export class Game {
     if (this.currentRoom < 5) {
       this.currentRoom++;
       await this.setupRoom();
-      document.getElementById("room-display").innerText = `Комната: ${this.currentRoom}/5`;
+      const roomText = document.getElementById("room-text");
+      if (roomText) {
+        roomText.innerText = `Комната: ${this.currentRoom}/5`;
+      }
     }
   }
 
