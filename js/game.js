@@ -21,7 +21,7 @@ export class Game {
   async loadEnemyConfig() {
     if (this.enemyConfig) return;
     try {
-      const response = await fetch("assets/enemies.json");
+      const response = await fetch("./assets/weapons.json");
       this.enemyConfig = await response.json();
     } catch (e) {
       this.enemyConfig = { star: { name: "Звезда", speed: 2, hp: 3, color: "#FFD700", blinkColor: "#FFF", size: 25 } };
