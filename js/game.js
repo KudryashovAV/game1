@@ -1,3 +1,7 @@
+/**
+ * Класс управления миром игры.
+ * Реализована случайная генерация дверей на разных стенах.
+ */
 export class Game {
   constructor(canvas, ctx) {
     this.canvas = canvas;
@@ -12,8 +16,9 @@ export class Game {
   setupRoom() {
     this.doors = [];
     let usedSymbols = [...this.allSymbols].sort(() => Math.random() - 0.5);
+    const isFinalRoom = this.currentRoom === 5;
 
-    // ВХОД (Всегда справа)
+    // 1. ВХОД (Всегда справа, центр)
     const entrance = {
       side: "right",
       x: this.roomBounds.width,
@@ -27,19 +32,58 @@ export class Game {
     this.doors.push(entrance);
     this.entrancePosition = { x: entrance.circleX, y: entrance.circleY };
 
-    // ВЫХОД (Всегда слева для простоты этапа)
-    const isFinalRoom = this.currentRoom === 5;
-    this.doors.push({
-      side: "left",
-      x: 0,
-      y: this.roomBounds.height / 2,
-      symbol: isFinalRoom ? "" : usedSymbols[0],
-      hasSymbol: !isFinalRoom, // В 5-й комнате нет символа и круга
-      circleX: 60,
-      circleY: this.roomBounds.height / 2,
-      isExit: true,
-      isFinal: isFinalRoom,
+    // 2. ГЕНЕРАЦИЯ ВЫХОДОВ
+    const potentialSides = ["left", "top", "bottom"];
+
+    // Определяем количество выходов: в финале всегда 1, иначе от 1 до 3
+    let numExits = isFinalRoom ? 1 : Math.floor(Math.random() * 3) + 1;
+
+    // Перемешиваем стороны, чтобы выбрать случайные
+    potentialSides.sort(() => Math.random() - 0.5);
+    const selectedSides = potentialSides.slice(0, numExits);
+
+    selectedSides.forEach((side, index) => {
+      let doorX, doorY, circleX, circleY;
+      const padding = 200; // Отступ от углов, чтобы двери не слипались
+
+      if (side === "left") {
+        doorX = 0;
+        // Если выход один, ставим строго по центру для макс. удаления
+        doorY =
+          numExits === 1
+            ? this.roomBounds.height / 2
+            : this.getRandomInRange(padding, this.roomBounds.height - padding);
+        circleX = 60;
+        circleY = doorY;
+      } else if (side === "top") {
+        doorX = this.getRandomInRange(padding, this.roomBounds.width - padding);
+        doorY = 0;
+        circleX = doorX;
+        circleY = 60;
+      } else if (side === "bottom") {
+        doorX = this.getRandomInRange(padding, this.roomBounds.width - padding);
+        doorY = this.roomBounds.height;
+        circleX = doorX;
+        circleY = this.roomBounds.height - 60;
+      }
+
+      this.doors.push({
+        side: side,
+        x: doorX,
+        y: doorY,
+        symbol: isFinalRoom ? "" : usedSymbols[index % usedSymbols.length],
+        hasSymbol: !isFinalRoom,
+        circleX: circleX,
+        circleY: circleY,
+        isExit: true,
+        isFinal: isFinalRoom,
+      });
     });
+  }
+
+  // Вспомогательная функция для рандома
+  getRandomInRange(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
   }
 
   nextLevel() {
@@ -54,27 +98,36 @@ export class Game {
     for (let door of this.doors) {
       if (!door.isExit) continue;
 
-      // Проверка касания круга (только если это не финал)
+      // Проверка круга
       if (!door.isFinal) {
         const dist = Math.sqrt((player.x - door.circleX) ** 2 + (player.y - door.circleY) ** 2);
-        if (dist < 15) return door;
+        if (dist < 20) return door;
       }
 
-      // Проверка касания прямоугольника двери
-      const doorW = 20;
-      const doorH = door.isFinal ? 120 : 60; // В два раза длиннее в финале
-      const doorRect = {
-        x: door.side === "left" ? 0 : door.x - doorW,
-        y: door.y - doorH / 2,
-        w: doorW,
-        h: doorH,
-      };
+      // Проверка прямоугольника двери
+      const doorSizeNormal = 60;
+      const doorSizeFinal = 120;
+      const currentSize = door.isFinal ? doorSizeFinal : doorSizeNormal;
+
+      // Определяем границы двери в зависимости от стены
+      let rect = { x: 0, y: 0, w: 0, h: 0 };
+      const thickness = 20;
+
+      if (door.side === "left") {
+        rect = { x: 0, y: door.y - currentSize / 2, w: thickness, h: currentSize };
+      } else if (door.side === "right") {
+        rect = { x: door.x - thickness, y: door.y - currentSize / 2, w: thickness, h: currentSize };
+      } else if (door.side === "top") {
+        rect = { x: door.x - currentSize / 2, y: 0, w: currentSize, h: thickness };
+      } else if (door.side === "bottom") {
+        rect = { x: door.x - currentSize / 2, y: door.y - thickness, w: currentSize, h: thickness };
+      }
 
       if (
-        player.x + player.size / 2 > doorRect.x &&
-        player.x - player.size / 2 < doorRect.x + doorRect.w &&
-        player.y + player.size / 2 > doorRect.y &&
-        player.y - player.size / 2 < doorRect.y + doorRect.h
+        player.x + player.size / 2 > rect.x &&
+        player.x - player.size / 2 < rect.x + rect.w &&
+        player.y + player.size / 2 > rect.y &&
+        player.y - player.size / 2 < rect.y + rect.h
       ) {
         return door;
       }
@@ -96,16 +149,26 @@ export class Game {
 
   drawDoor(door) {
     const ctx = this.ctx;
-    const doorW = 20;
-    const doorH = door.isFinal ? 120 : 60; // Удлиненная дверь
+    const thickness = 20;
+    const currentSize = door.isFinal ? 120 : 60;
 
-    // Цвет двери: красный в финале, зеленый обычно
     ctx.fillStyle = door.isFinal ? "red" : "green";
 
-    let drawX = door.side === "right" ? door.x - doorW : door.x;
-    ctx.fillRect(drawX, door.y - doorH / 2, doorW, doorH);
+    // Рисуем дверь в зависимости от стороны
+    let dx, dy, dw, dh;
+    if (door.side === "left" || door.side === "right") {
+      dw = thickness;
+      dh = currentSize;
+      dx = door.side === "left" ? 0 : door.x - thickness;
+      dy = door.y - dh / 2;
+    } else {
+      dw = currentSize;
+      dh = thickness;
+      dx = door.x - dw / 2;
+      dy = door.side === "top" ? 0 : door.y - thickness;
+    }
+    ctx.fillRect(dx, dy, dw, dh);
 
-    // Рисуем круг и символ, только если это не финальная дверь и не вход
     if (door.hasSymbol && !door.isFinal) {
       ctx.beginPath();
       ctx.arc(door.circleX, door.circleY, 20, 0, Math.PI * 2);
