@@ -13,51 +13,56 @@ export class Game {
     this.doors = [];
     let usedSymbols = [...this.allSymbols].sort(() => Math.random() - 0.5);
 
-    // Вход (справа)
+    // ВХОД (Всегда справа)
     const entrance = {
       side: "right",
       x: this.roomBounds.width,
       y: this.roomBounds.height / 2,
       symbol: "",
       hasSymbol: false,
-      // Координаты центра круга для проверки коллизий
       circleX: this.roomBounds.width - 60,
       circleY: this.roomBounds.height / 2,
+      isExit: false,
     };
     this.doors.push(entrance);
     this.entrancePosition = { x: entrance.circleX, y: entrance.circleY };
 
-    // Выход (слева)
+    // ВЫХОД (Всегда слева для простоты этапа)
+    const isFinalRoom = this.currentRoom === 5;
     this.doors.push({
       side: "left",
       x: 0,
       y: this.roomBounds.height / 2,
-      symbol: usedSymbols[0],
-      hasSymbol: true,
+      symbol: isFinalRoom ? "" : usedSymbols[0],
+      hasSymbol: !isFinalRoom, // В 5-й комнате нет символа и круга
       circleX: 60,
       circleY: this.roomBounds.height / 2,
+      isExit: true,
+      isFinal: isFinalRoom,
     });
   }
 
   nextLevel() {
-    this.currentRoom++;
-    this.setupRoom();
-    document.getElementById("room-display").innerText = `Комната: ${this.currentRoom}/5`;
+    if (this.currentRoom < 5) {
+      this.currentRoom++;
+      this.setupRoom();
+      document.getElementById("room-display").innerText = `Комната: ${this.currentRoom}/5`;
+    }
   }
 
-  // Проверка: коснулся ли игрок двери или центра круга
   checkDoorCollision(player) {
     for (let door of this.doors) {
-      // Проверяем только двери, которые являются выходами (с символами)
-      if (!door.hasSymbol) continue;
+      if (!door.isExit) continue;
 
-      // 1. Проверка касания центра круга (дистанция между точками)
-      const dist = Math.sqrt((player.x - door.circleX) ** 2 + (player.y - door.circleY) ** 2);
-      if (dist < 15) return door; // Если игрок почти в центре круга
+      // Проверка касания круга (только если это не финал)
+      if (!door.isFinal) {
+        const dist = Math.sqrt((player.x - door.circleX) ** 2 + (player.y - door.circleY) ** 2);
+        if (dist < 15) return door;
+      }
 
-      // 2. Проверка касания прямоугольника двери
+      // Проверка касания прямоугольника двери
       const doorW = 20;
-      const doorH = 60;
+      const doorH = door.isFinal ? 120 : 60; // В два раза длиннее в финале
       const doorRect = {
         x: door.side === "left" ? 0 : door.x - doorW,
         y: door.y - doorH / 2,
@@ -81,6 +86,7 @@ export class Game {
     const ctx = this.ctx;
     ctx.fillStyle = "azure";
     ctx.fillRect(0, 0, this.roomBounds.width, this.roomBounds.height);
+
     ctx.strokeStyle = "#000";
     ctx.lineWidth = 15;
     ctx.strokeRect(0, 0, this.roomBounds.width, this.roomBounds.height);
@@ -91,19 +97,22 @@ export class Game {
   drawDoor(door) {
     const ctx = this.ctx;
     const doorW = 20;
-    const doorH = 60;
+    const doorH = door.isFinal ? 120 : 60; // Удлиненная дверь
 
-    ctx.fillStyle = "green";
+    // Цвет двери: красный в финале, зеленый обычно
+    ctx.fillStyle = door.isFinal ? "red" : "green";
+
     let drawX = door.side === "right" ? door.x - doorW : door.x;
     ctx.fillRect(drawX, door.y - doorH / 2, doorW, doorH);
 
-    ctx.beginPath();
-    ctx.arc(door.circleX, door.circleY, 20, 0, Math.PI * 2);
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    // Рисуем круг и символ, только если это не финальная дверь и не вход
+    if (door.hasSymbol && !door.isFinal) {
+      ctx.beginPath();
+      ctx.arc(door.circleX, door.circleY, 20, 0, Math.PI * 2);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    if (door.hasSymbol) {
       ctx.fillStyle = "black";
       ctx.font = "bold 24px monospace";
       ctx.textAlign = "center";

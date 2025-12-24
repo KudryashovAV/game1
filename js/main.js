@@ -18,12 +18,17 @@ function init() {
   game.setupRoom();
   player.spawn(game.entrancePosition);
 
-  // Обработка клика по кнопке "Продолжить"
   continueBtn.addEventListener("click", () => {
+    // Если игра пройдена (была 5-я комната), перезагружаем страницу
+    if (game.currentRoom >= 5) {
+      location.reload();
+      return;
+    }
+
     isPaused = false;
     transitionPopup.classList.add("hidden");
-    game.nextLevel(); // Генерируем новую комнату
-    player.spawn(game.entrancePosition); // Перемещаем игрока к новой входной двери
+    game.nextLevel();
+    player.spawn(game.entrancePosition);
   });
 
   requestAnimationFrame(gameLoop);
@@ -31,17 +36,14 @@ function init() {
 
 function gameLoop() {
   if (!isPaused) {
-    // 1. Логика
     player.update(game.roomBounds);
 
-    // Проверка столкновения с дверями
     const hitDoor = game.checkDoorCollision(player);
     if (hitDoor) {
-      showTransition(hitDoor.symbol);
+      showTransition(hitDoor);
     }
   }
 
-  // 2. Отрисовка
   ctx.fillStyle = "#808080";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -61,9 +63,17 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-function showTransition(symbol) {
+function showTransition(door) {
   isPaused = true;
-  transitionText.innerText = `Уровень пройден, следующая комната содержит ${symbol}`;
+
+  if (game.currentRoom === 5) {
+    transitionText.innerText = "Ура! Игра пройдена";
+    continueBtn.innerText = "Начать заново";
+  } else {
+    transitionText.innerText = `Уровень пройден, следующая комната содержит ${door.symbol}`;
+    continueBtn.innerText = "Продолжить";
+  }
+
   transitionPopup.classList.remove("hidden");
 }
 
