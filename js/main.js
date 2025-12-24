@@ -6,13 +6,56 @@ const ctx = canvas.getContext("2d");
 const transitionPopup = document.getElementById("transition-popup");
 const transitionText = document.getElementById("transition-text");
 const continueBtn = document.getElementById("continue-btn");
+const pausePopup = document.getElementById("pause-popup");
+const pauseBtn = document.getElementById("pause-btn");
+const resumeBtn = document.getElementById("resume-btn");
+const restartGameBtn = document.getElementById("restart-game-btn");
+const restartLevelBtn = document.getElementById("restart-level-btn");
+const game = new Game(canvas, ctx);
+const player = new Player();
+
+let isPaused = false;
+let isPausedByMenu = false; // Отдельное состояние для меню паузы
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const game = new Game(canvas, ctx);
-const player = new Player();
-let isPaused = false;
+/**
+ * Функция включения/выключения паузы
+ */
+function togglePauseMenu() {
+  // Не открываем меню паузы, если уже открыт попап перехода между уровнями
+  if (isPaused && !isPausedByMenu) return;
+
+  isPausedByMenu = !isPausedByMenu;
+  isPaused = isPausedByMenu; // Общая переменная паузы для игрового цикла
+
+  if (isPausedByMenu) {
+    pausePopup.classList.remove("hidden");
+  } else {
+    pausePopup.classList.add("hidden");
+  }
+}
+
+/**
+ * Перезапуск текущего уровня
+ */
+async function restartLevel() {
+  isPausedByMenu = false;
+  isPaused = false;
+  pausePopup.classList.add("hidden");
+
+  // Перегенерируем ту же комнату (враги пересоздадутся внутри setupRoom)
+  await game.setupRoom();
+  player.spawn(game.entrancePosition);
+}
+
+/**
+ * Перезапуск всей игры
+ */
+function restartGame() {
+  location.reload(); // Самый надежный способ сбросить всё в начальное состояние
+}
 
 function handleContinue() {
   if (!isPaused) return;
@@ -50,6 +93,29 @@ async function init() {
   continueBtn.addEventListener("click", handleContinue);
   window.addEventListener("keydown", (e) => {
     if (e.code === "Enter" || e.code === "NumpadEnter") handleContinue();
+  });
+
+  // Клик по кнопке "Пауза" в интерфейсе
+  pauseBtn.addEventListener("click", (e) => {
+    e.blur(); // Снимаем фокус с кнопки, чтобы Enter не нажимал её повторно
+    togglePauseMenu();
+  });
+
+  // Кнопки внутри попапа
+  resumeBtn.addEventListener("click", togglePauseMenu);
+  restartLevelBtn.addEventListener("click", restartLevel);
+  restartGameBtn.addEventListener("click", restartGame);
+
+  // Клавиша Esc и Enter для управления
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Escape") {
+      togglePauseMenu();
+    }
+
+    // Если открыто меню паузы, Enter работает как "Продолжить"
+    if (isPausedByMenu && (e.code === "Enter" || e.code === "NumpadEnter")) {
+      togglePauseMenu();
+    }
   });
 
   // 5. И только теперь запускаем цикл
