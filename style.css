@@ -1,56 +1,46 @@
 /* Основные настройки страницы */
 body {
-  /* Убираем внешние и внутренние отступы у страницы */
   margin: 0;
   padding: 0;
-  /* Запрещаем прокрутку, чтобы экран не дергался при движении игрока */
-  overflow: hidden;
-  /* Темный фон вокруг игрового поля на случай, если окно больше канваса */
-  background-color: #333;
+  overflow: hidden; /* Запрещаем скроллбары браузера */
+  background-color: #1a1a1a; /* Темный фон за пределами игровой зоны */
 }
 
-/* Контейнер, в котором лежит игра и интерфейс */
+/* Контейнер для центрирования игры */
 #game-container {
   position: relative;
   width: 100vw;
   height: 100vh;
-  /* Центрируем содержимое внутри контейнера */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Игровой холст (Canvas) */
+/* Игровой холст */
 canvas {
-  /* Лазурный пол комнаты по ТЗ */
-  background-color: azure;
+  background-color: azure; /* Цвет пола комнаты по ТЗ */
   display: block;
-  /* Отключаем сглаживание, чтобы пиксели (игрок) были четкими */
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  image-rendering: pixelated; /* Четкие границы объектов без размытия */
 }
 
-/* Общий класс для скрытия элементов интерфейса */
+/* Скрытые элементы интерфейса */
 .hidden {
   display: none !important;
 }
 
-/* Слой интерфейса (здоровье, уровень), висит поверх игры */
+/* Слой интерфейса (HP, Уровень и т.д.) */
 #ui-layer {
   position: absolute;
   top: 20px;
   left: 20px;
   color: #000;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  /* Чтобы клики мышкой проходили сквозь текст и не мешали игре */
-  pointer-events: none;
-  /* Тень для лучшей читаемости на светлом фоне */
-  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
+  font-family: sans-serif;
+  pointer-events: none; /* Пропускает клики сквозь себя */
+  z-index: 10;
 }
 
-/* Стили для текста характеристик */
 .stats div {
   margin-bottom: 5px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 1.2rem;
 }

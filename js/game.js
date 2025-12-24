@@ -1,85 +1,97 @@
+/**
+ * Класс управления миром игры и комнатами.
+ */
 export class Game {
   constructor(canvas, ctx) {
     this.canvas = canvas;
     this.ctx = ctx;
-    // Комната больше экрана: 2000x2000 пикселей
-    this.roomBounds = { width: 2000, height: 2000 };
+    // Размер комнаты значительно больше экрана
+    this.roomBounds = { width: 2400, height: 1800 };
     this.doors = [];
     this.entrancePosition = { x: 0, y: 0 };
-    this.symbols = ["@", "#", "$", "%"];
+    this.allSymbols = ["@", "#", "$", "%"];
   }
 
   setupRoom() {
     this.doors = [];
-    const doorSize = 40; // Размер прямоугольника двери
-    const playerSize = 20; // 5мм в пикселях
-    const circleRadius = playerSize; // Диаметр в 2 раза больше фигурки (радиус = размеру)
+    let usedSymbols = [...this.allSymbols].sort(() => Math.random() - 0.5);
 
-    // 1. Входная дверь (Правая стена, центр)
+    // 1. ВХОД (Правая стена, центр)
     const entrance = {
       side: "right",
-      x: this.roomBounds.width - 10,
+      x: this.roomBounds.width,
       y: this.roomBounds.height / 2,
+      symbol: "", // У входа нет символа
       hasSymbol: false,
-      symbol: "",
     };
     this.doors.push(entrance);
-    // Точка появления игрока: центр круга перед дверью
-    this.entrancePosition = { x: entrance.x - 40, y: entrance.y };
 
-    // 2. Генерация выходных дверей (от 1 до 3 дополнительных)
-    const availableSides = ["left", "top", "bottom"];
-    const numExits = 1; // Для первого этапа сделаем минимум 2 двери (Вход + 1 Выход)
+    // Позиция игрока: центр круга перед дверью (внутри комнаты)
+    this.entrancePosition = { x: entrance.x - 60, y: entrance.y };
 
-    // Перемешиваем символы
-    let currentSymbols = [...this.symbols].sort(() => Math.random() - 0.5);
-
-    availableSides.forEach((side, index) => {
-      // Если это левая сторона (макс. удаление от правой), создаем дверь обязательно
-      if (side === "left") {
-        this.doors.push({
-          side: "left",
-          x: 10,
-          y: this.roomBounds.height / 2,
-          hasSymbol: true,
-          symbol: currentSymbols.pop(),
-        });
-      }
+    // 2. ВЫХОД (Левая стена, макс. удаление)
+    // Располагаем по центру левой стены для максимальной дистанции
+    this.doors.push({
+      side: "left",
+      x: 0,
+      y: this.roomBounds.height / 2,
+      symbol: usedSymbols.pop(),
+      hasSymbol: true,
     });
+
+    // Можно добавить еще двери на верх/низ по желанию в будущем
   }
 
   drawRoom() {
     const ctx = this.ctx;
 
-    // Рисуем границы комнаты (стены)
+    // Рисуем пол комнаты (лазурный)
+    ctx.fillStyle = "azure";
+    ctx.fillRect(0, 0, this.roomBounds.width, this.roomBounds.height);
+
+    // Рисуем стены (черная рамка)
     ctx.strokeStyle = "#000";
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 15;
     ctx.strokeRect(0, 0, this.roomBounds.width, this.roomBounds.height);
 
-    // Рисуем двери
+    // Отрисовка дверей
     this.doors.forEach((door) => {
-      // Зеленый прямоугольник (дверь)
-      ctx.fillStyle = "green";
-      ctx.fillRect(door.x - 10, door.y - 25, 20, 50);
-
-      // Круг перед дверью
-      ctx.beginPath();
-      const circleX = door.side === "right" ? door.x - 40 : door.side === "left" ? door.x + 40 : door.x;
-      const circleY = door.side === "top" ? door.y + 40 : door.side === "bottom" ? door.y - 40 : door.y;
-
-      ctx.arc(circleX, circleY, 20, 0, Math.PI * 2);
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Символ внутри круга
-      if (door.hasSymbol) {
-        ctx.fillStyle = "black";
-        ctx.font = "20px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(door.symbol, circleX, circleY);
-      }
+      this.drawDoor(door);
     });
+  }
+
+  drawDoor(door) {
+    const ctx = this.ctx;
+    const doorW = 20;
+    const doorH = 60;
+
+    // 1. Зеленый прямоугольник (сама дверь)
+    ctx.fillStyle = "green";
+    let drawX = door.x;
+    let drawY = door.y - doorH / 2;
+
+    // Корректировка отрисовки, чтобы дверь была "встроена" в стену
+    if (door.side === "right") drawX -= doorW;
+
+    ctx.fillRect(drawX, drawY, doorW, doorH);
+
+    // 2. Круг перед дверью (диаметр в 2 раза больше игрока 20*2 = 40, значит радиус 20)
+    ctx.beginPath();
+    let circleX = door.side === "right" ? door.x - 60 : door.side === "left" ? door.x + 60 : door.x;
+    let circleY = door.y;
+
+    ctx.arc(circleX, circleY, 20, 0, Math.PI * 2);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 3. Символ внутри круга
+    if (door.hasSymbol) {
+      ctx.fillStyle = "black";
+      ctx.font = "bold 24px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(door.symbol, circleX, circleY);
+    }
   }
 }

@@ -1,43 +1,59 @@
-// Импортируем другие модули (мы их создадим ниже)
+/**
+ * Точка входа в игру. Управляет циклом и камерой.
+ */
 import { Game } from "./game.js";
 import { Player } from "./entities/player.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Настройка размера канваса под размер окна
+// Установка размера холста на весь экран
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Создаем объекты
 const game = new Game(canvas, ctx);
 const player = new Player();
 
-// Инициализация игры
 function init() {
-  game.setupRoom(); // Генерируем комнату и двери
-  player.spawn(game.entrancePosition); // Спавним игрока у входной двери
-  requestAnimationFrame(gameLoop); // Запускаем цикл
+  game.setupRoom(); // Генерация комнаты и дверей
+  player.spawn(game.entrancePosition); // Появление игрока у входа
+  requestAnimationFrame(gameLoop);
 }
 
-// Главный игровой цикл
 function gameLoop() {
-  // 1. Очистка (рисуем фон/пол)
-  ctx.fillStyle = "azure";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // 1. Очистка экрана перед новым кадром
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 2. Обновление логики
+  // 2. Обновление логики игрока (движение и границы)
   player.update(game.roomBounds);
 
-  // 3. Отрисовка
-  // Используем камеру, чтобы игрок всегда был в центре,
-  // а комната двигалась вокруг него
-  ctx.save();
-  const cameraX = -player.x + canvas.width / 2;
-  const cameraY = -player.y + canvas.height / 2;
-  ctx.translate(cameraX, cameraY);
+  // 3. Расчет камеры
+  // Идеальный центр камеры на игроке
+  let targetX = canvas.width / 2 - player.x;
+  let targetY = canvas.height / 2 - player.y;
 
-  game.drawRoom(); // Рисуем стены, двери и символы
+  // Рассчитываем 10% от края экрана для "остановки" стены
+  const marginX = canvas.width * 0.1;
+  const marginY = canvas.height * 0.1;
+
+  /**
+   * Ограничение камеры (Clamping):
+   * Мы не даем координатам камеры выйти за пределы, где стена комнаты
+   * находится ближе чем 10% к краю экрана.
+   */
+  const minX = canvas.width - game.roomBounds.width - marginX;
+  const maxX = marginX;
+  const minY = canvas.height - game.roomBounds.height - marginY;
+  const maxY = marginY;
+
+  const camX = Math.max(minX, Math.min(maxX, targetX));
+  const camY = Math.max(minY, Math.min(maxY, targetY));
+
+  // 4. Отрисовка с применением трансформации камеры
+  ctx.save();
+  ctx.translate(camX, camY);
+
+  game.drawRoom(); // Рисуем пол, стены, двери
   player.draw(ctx); // Рисуем игрока
 
   ctx.restore();
@@ -45,4 +61,5 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// Запуск игры
 init();
