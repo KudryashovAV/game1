@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dungeon Survivors</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Экран выбора навыков -->
+      <div id="levelUpScreen" class="screen">
+        <h2>LEVEL UP!</h2>
+        <p>Choose one ability:</p>
+        <div id="abilityChoices" class="choices">
+          <!-- Будет заполнено JavaScript -->
+        </div>
+      </div>
+
+      <!-- Экран перехода между комнатами -->
+      <div id="roomTransitionScreen" class="screen">
+        <h2>Room Cleared!</h2>
+        <p>Move to next room:</p>
+        <div id="doorChoices" class="choices">
+          <!-- Будет заполнено JavaScript -->
+        </div>
+        <p id="timerText">Leaving in: 5s</p>
+      </div>
+
+      <!-- HUD -->
+      <div id="hud">
+        <div class="hud-item">
+          <span>❤️</span>
+          <span id="health">5</span>
+        </div>
+        <div class="hud-item">
+          <span>⭐</span>
+          <span id="level">1</span>
+        </div>
+        <div class="hud-item">
+          <span>🧭</span>
+          <span id="room">1/5</span>
+        </div>
+        <div class="hud-item">
+          <span>🎯</span>
+          <span id="enemies">5</span>
+        </div>
+        <div class="hud-item">
+          <span>⏱️</span>
+          <span id="roomTimer">-</span>
+        </div>
+      </div>
+
+      <!-- Панель способностей -->
+      <div id="abilitiesPanel">
+        <h3>ABILITIES:</h3>
+        <div id="abilitiesList"></div>
+      </div>
+
+      <!-- Экран смерти -->
+      <div id="gameOverScreen" class="screen">
+        <h2>YOU DIED!</h2>
+        <p>You reached Room <span id="finalRoom">1</span></p>
+        <p>Final Level: <span id="finalLevel">1</span></p>
+        <button onclick="restartGame()">PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
