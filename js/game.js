@@ -46,6 +46,9 @@ export class Game {
       let doorX, doorY, circleX, circleY;
       const padding = 200; // Отступ от углов, чтобы двери не слипались
 
+      console.log("side", side);
+      console.log("numExits", numExits);
+
       if (side === "left") {
         doorX = 0;
         // Если выход один, ставим строго по центру для макс. удаления

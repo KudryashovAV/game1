@@ -14,21 +14,36 @@ const game = new Game(canvas, ctx);
 const player = new Player();
 let isPaused = false;
 
+/**
+ * Логика продолжения игры (вынесена в отдельную функцию,
+ * чтобы вызывать и по клику, и по нажатию Enter)
+ */
+function handleContinue() {
+  if (!isPaused) return; // Если игра не на паузе, ничего не делаем
+
+  if (game.currentRoom >= 5) {
+    location.reload();
+    return;
+  }
+
+  isPaused = false;
+  transitionPopup.classList.add("hidden");
+  game.nextLevel();
+  player.spawn(game.entrancePosition);
+}
+
 function init() {
   game.setupRoom();
   player.spawn(game.entrancePosition);
 
-  continueBtn.addEventListener("click", () => {
-    // Если игра пройдена (была 5-я комната), перезагружаем страницу
-    if (game.currentRoom >= 5) {
-      location.reload();
-      return;
-    }
+  // 1. Обработка клика мышкой
+  continueBtn.addEventListener("click", handleContinue);
 
-    isPaused = false;
-    transitionPopup.classList.add("hidden");
-    game.nextLevel();
-    player.spawn(game.entrancePosition);
+  // 2. Обработка клавиши Enter
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Enter" || e.code === "NumpadEnter") {
+      handleContinue();
+    }
   });
 
   requestAnimationFrame(gameLoop);
@@ -44,6 +59,7 @@ function gameLoop() {
     }
   }
 
+  // Отрисовка
   ctx.fillStyle = "#808080";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -70,7 +86,7 @@ function showTransition(door) {
     transitionText.innerText = "Ура! Игра пройдена";
     continueBtn.innerText = "Начать заново";
   } else {
-    transitionText.innerText = `${game.currentRoom} уровень пройден, следующая комната содержит ${door.symbol}`;
+    transitionText.innerText = `Уровень пройден, следующая комната содержит ${door.symbol}`;
     continueBtn.innerText = "Продолжить";
   }
 
