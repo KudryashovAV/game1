@@ -17,7 +17,7 @@ export class Player {
   async equipWeapon(weaponId) {
     let config;
     try {
-      const response = await fetch("./assets/enemies.json");
+      const response = await fetch("./assets/weapons.json");
       const data = await response.json();
       config = data[weaponId];
     } catch (error) {
