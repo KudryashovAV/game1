@@ -1,0 +1,8 @@
+{
+  "default": {
+    "speed": 7,
+    "size": 20,
+    "hp": 5,
+    "maxHp": 5
+  }
+}

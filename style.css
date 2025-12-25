@@ -112,6 +112,13 @@ canvas {
   background-color: #c0392b;
 }
 
+#restart-level-btn {
+  background-color: rgba(255, 145, 60, 0.91);
+}
+#restart-level-btn:hover {
+  background-color: rgba(255, 105, 70, 0.91);
+}
+
 .menu-content h2 {
   margin-top: 0;
   color: #333;

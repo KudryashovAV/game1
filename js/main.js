@@ -58,6 +58,7 @@ function restartGame() {
 }
 
 function handleContinue() {
+  if (isPausedByMenu) return;
   if (!isPaused) return;
 
   if (game.currentRoom >= 5) {
@@ -76,6 +77,7 @@ function handleContinue() {
 }
 
 async function init() {
+  await player.loadConfig();
   // 1. Сначала генерируем комнату и её границы
   await game.setupRoom();
 
@@ -91,8 +93,31 @@ async function init() {
 
   // 4. Настраиваем события
   continueBtn.addEventListener("click", handleContinue);
-  window.addEventListener("keydown", (e) => {
-    if (e.code === "Enter" || e.code === "NumpadEnter") handleContinue();
+
+
+  window.addEventListener('keydown', (e) => {
+    const isEnter = e.code === 'Enter' || e.code === 'NumpadEnter';
+
+    // 1. Обработка ESC (только для паузы)
+    if (e.code === 'Escape') {
+      togglePauseMenu();
+      return;
+    }
+
+    // 2. Обработка Enter
+    if (isEnter) {
+      // Если открыто меню паузы — просто закрываем его и выходим из функции
+      if (isPausedByMenu) {
+        togglePauseMenu();
+        return;
+      }
+
+      // Если меню паузы НЕ открыто, но игра на паузе (значит открыт попап уровня)
+      // вызываем переход на следующий уровень
+      if (isPaused) {
+        handleContinue();
+      }
+    }
   });
 
   // Клик по кнопке "Пауза" в интерфейсе
@@ -107,18 +132,6 @@ async function init() {
   resumeBtn.addEventListener("click", togglePauseMenu);
   restartLevelBtn.addEventListener("click", restartLevel);
   restartGameBtn.addEventListener("click", restartGame);
-
-  // Клавиша Esc и Enter для управления
-  window.addEventListener("keydown", (e) => {
-    if (e.code === "Escape") {
-      togglePauseMenu();
-    }
-
-    // Если открыто меню паузы, Enter работает как "Продолжить"
-    if (isPausedByMenu && (e.code === "Enter" || e.code === "NumpadEnter")) {
-      togglePauseMenu();
-    }
-  });
 
   // 5. И только теперь запускаем цикл
   requestAnimationFrame(gameLoop);

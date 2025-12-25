@@ -2,16 +2,46 @@ import { BallLightning } from "./weapon.js";
 
 export class Player {
   constructor() {
-    this.size = 20;
+    // Начальные значения-заглушки
     this.x = 0;
     this.y = 0;
-    this.speed = 7;
-    this.keys = {};
-    this.weapon = null;
+    this.speed = 0;
+    this.size = 0;
+    this.hp = 0;
+    this.maxHp = 0;
 
-    // Слушатели клавиш
-    window.addEventListener("keydown", (e) => (this.keys[e.code] = true));
-    window.addEventListener("keyup", (e) => (this.keys[e.code] = false));
+    this.weapon = null;
+    this.keys = {};
+
+    window.addEventListener('keydown', (e) => this.keys[e.code] = true);
+    window.addEventListener('keyup', (e) => this.keys[e.code] = false);
+  }
+
+  async loadConfig() {
+    try {
+      const response = await fetch('./assets/player.json');
+      if (!response.ok) throw new Error("Player config not found");
+      const data = await response.json();
+      const config = data.default;
+
+      this.speed = config.speed;
+      this.size = config.size;
+      this.hp = config.hp;
+      this.maxHp = config.maxHp;
+
+      this.updateUI();
+    } catch (error) {
+      console.warn("Используются дефолтные настройки игрока:", error);
+      this.speed = 7;
+      this.size = 20;
+      this.hp = 5;
+      this.maxHp = 5;
+    }
+  }
+
+  updateUI() {
+    const hpDisp = document.getElementById('hp-display');
+    if (hpDisp) hpDisp.innerText = `HP: ${Math.ceil(this.hp)} / ${this.maxHp}`;
   }
 
   async equipWeapon(weaponId) {
